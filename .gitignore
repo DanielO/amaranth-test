@@ -1,1 +1,13 @@
 .DS_Store
+/**/__pycache__
+*~
+*#
+_impact.cmd
+_impact.log
+_impactbatch.log
+bin
+build
+lib
+lib64
+pyvenv.cfg
+share
