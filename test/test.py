@@ -7,6 +7,7 @@ from amaranth.build import *
 from amaranth.vendor.xilinx import XilinxPlatform
 from .i2c import I2CTarget
 from .registers import I2CRegisters
+from .up_counter import UpCounter
 
 __all__ = ['I2CTest']
 
@@ -22,10 +23,12 @@ class I2CTest(Elaboratable):
         m.d.comb += m.submodules.i2c_target.address.eq(0b0001000)
 
         # Create registers
-        self.reg_led,  self.addr_led  = m.submodules.registers.add_rw(8)
-        self.reg_push,  self.addr_push  = m.submodules.registers.add_ro(8)
-        self.reg_test,  self.addr_test  = m.submodules.registers.add_ro(8)
-        print('led at %d, push at %d, test at %d' % (self.addr_led, self.addr_push, self.addr_test))
+        self.reg_led, self.addr_led = m.submodules.registers.add_rw(1)
+        self.reg_push, self.addr_push = m.submodules.registers.add_ro(2)
+        self.reg_test, self.addr_test = m.submodules.registers.add_ro(8)
+        self.reg_ctr, self.addr_ctr = m.submodules.registers.add_rw(1, reset = 1)
+        print('led at %d, push at %d, test at %d, counter at %d' % (
+            self.addr_led, self.addr_push, self.addr_test, self.addr_ctr))
 
         # Connect LED1 to reg_led
         led1 = platform.request("led1")
@@ -45,14 +48,12 @@ class I2CTest(Elaboratable):
 
         # Blink LED3 at 1Hz
         led3 = platform.request("led3")
-        half_freq = int(platform.default_clk_frequency // 2)
-        timer = Signal(range(half_freq + 1))
 
-        with m.If(timer == half_freq):
+        m.submodules.upcount = UpCounter(platform.default_clk_frequency // 2)
+        with m.If(m.submodules.upcount.ovf):
             m.d.sync += led3.eq(~led3)
-            m.d.sync += timer.eq(0)
-        with m.Else():
-            m.d.sync += timer.eq(timer + 1)
+        m.d.sync += m.submodules.upcount.en.eq(self.reg_ctr[0])
+
         return m
 
 def I2CResource(*args, scl, sda, conn=None, attrs=None):
