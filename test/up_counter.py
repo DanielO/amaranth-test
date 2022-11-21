@@ -3,7 +3,7 @@ from amaranth import *
 
 class UpCounter(Elaboratable):
     """
-    A 16-bit up counter with a fixed limit.
+    An up counter with a fixed limit.
 
     Parameters
     ----------
@@ -19,14 +19,14 @@ class UpCounter(Elaboratable):
         ``ovf`` is asserted when the counter reaches its limit.
     """
     def __init__(self, limit):
-        self.limit = limit
+        self.limit = int(limit)
 
         # Ports
         self.en  = Signal()
         self.ovf = Signal()
 
         # State
-        self.count = Signal(16)
+        self.count = Signal(range(self.limit + 1))
 
     def elaborate(self, platform):
         m = Module()
