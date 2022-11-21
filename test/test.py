@@ -32,19 +32,19 @@ class I2CTest(Elaboratable):
 
         # Connect LED1 to reg_led
         led1 = platform.request("led1")
-        m.d.comb += led1.eq(~self.reg_led[0])
+        m.d.sync += led1.eq(~self.reg_led[0])
 
         # Read push button state in reg_push
         push1 = platform.request("push1")
         push2 = platform.request("push2")
-        m.d.comb += self.reg_push.eq(push2 << 1 | push1)
+        m.d.sync += self.reg_push.eq(push2 << 1 | push1)
 
         # Control led2 from push2 state
         led2 = platform.request("led2")
         m.d.comb += led2.eq(push2)
 
         # Dummy register with fixed value
-        m.d.comb += self.reg_test.eq(123)
+        m.d.sync += self.reg_test.eq(123)
 
         # Blink LED3 at 1Hz
         led3 = platform.request("led3")
